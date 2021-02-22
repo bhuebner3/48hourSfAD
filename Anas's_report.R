@@ -44,6 +44,22 @@ str(cont_fao)
 
 # adding the continent column:
 fao <- fao %>% add_column(continent = cont_fao) 
+# assigning NA continents to correct continents
+fao <- fao %>% 
+  mutate(continent   = case_when( Area == "Bermuda"        ~ "North America",
+                                  Area == "Cabo Verde"        ~ "Africa",
+                                  Area == "China, Macao SAR"        ~ "Asia",
+                                  Area == "Grenada"        ~ "North America",
+                                  Area == "Kiribati"        ~ "Australia",
+                                  Area == "Maldives"        ~ "Asia",
+                                  Area == "New Caledonia"        ~ "Australia",
+                                  Area == "New Zealand"        ~ "Australia",
+                                  Area == "Philippines"        ~ "Asia",
+                                  Area == "Maldives"        ~ "Asia",
+                                  Area == "Saint Vincent and the Grenadines"        ~ "North America",
+                                  Area == "Samoa"        ~ "Australia",
+                                  Area == "Sweden"        ~ "Europe",
+                                  TRUE ~ as.character(continent)))
 
 # to visualize the change between years for the elements: feed and food
 fao %>% select(Element, Y1961:Y2013) %>%
