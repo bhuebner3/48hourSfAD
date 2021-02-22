@@ -62,17 +62,6 @@ fao <- fao %>%
                                   Area == "Sweden"        ~ "Europe",
                                   TRUE ~ as.character(continent)))
 
-# to visualize the change between years for the elements: feed and food
-fao %>% select(Element, Y1961:Y2013) %>%
-  pivot_longer(., cols = c(Y1961:Y2013), names_to = "Year", values_to = "Food_Balance") %>%
-  ggplot(aes(fill=Element, y=Food_Balance, x=Year)) + 
-  geom_bar(position="stack", stat="identity")
-
-fao %>% select(continent, Y1961:Y2013) %>%
-  pivot_longer(., cols = c(Y1961:Y2013), names_to = "Year", values_to = "Food_Balance") %>%
-  ggplot(aes(fill=continent, y=Food_Balance, x=Year)) + 
-  geom_bar(position="stack", stat="identity")
-
 #Nora's ANOVAS
 
 long_data <- fao %>% gather(Year, Production, Y1961:Y2013)
