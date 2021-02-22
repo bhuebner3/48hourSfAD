@@ -5,6 +5,7 @@ library(tibble)
 library(forcats)
 library(sp)
 library(rworldmap)
+library(reshape2)
 
 
 fao <- read.csv("FAO.csv")
@@ -50,6 +51,16 @@ fao %>% select(Element, Y1961:Y2013) %>%
     ggplot(aes(fill=Element, y=Val, x=Var)) + 
     geom_bar(position="stack", stat="identity")
 
+fao %>% select(continent, Y1961:Y2013) %>%
+    pivot_longer(., cols = c(Y1961:Y2013), names_to = "Var", values_to = "Val") %>%
+    ggplot(aes(fill=continent, y=Val, x=Var)) + 
+    geom_bar(position="stack", stat="identity")
+
 # counting the items, to know the importance of each one
 itm_count <- fct_count(fao$Item, sort = TRUE)
 
+# converting the wide data set into a tall one:
+melted_fao <- fao %>% select(Area, Element, Item, Y1961 : Y2013) %>%
+    melt(id = c("Area","Element","Item"))
+
+                   
