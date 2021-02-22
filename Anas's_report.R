@@ -41,6 +41,10 @@ str(cont_fao)
 
 # adding the continent column:
 fao <- fao %>% add_column(continent = cont_fao) 
+
+# selecting the important variables:
+fao_sel <- fao[,-c(2,4,6,8,9,10)]
+
 # assigning NA continents to correct continents
 fao <- fao %>% 
   mutate(continent   = case_when( Area == "Bermuda"        ~ "North America",
@@ -103,11 +107,6 @@ summary(one.way_2013)
 #For 2013 we have a smaller F-Value --> The larger the F value, the more likely it is that
 # the variation caused by the independent variable is real and not due to chance
 # So: It has gotten more likely that the variation is real
-
-# counting the items, to know the importance of each one
-itm_count <- fct_count(fao$Item, sort = TRUE)
-
-
 
 
 ### MORITZ
