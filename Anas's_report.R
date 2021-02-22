@@ -11,11 +11,8 @@ library(reshape2)
 fao <- read.csv("FAO.csv")
 
 str(fao)
-# cleaning the data, by replacing NA values with 0:
-fao[is.na(fao)] <- 0
 
 # to figure out the continent from lat,long:
-
 points = data.frame(lon=fao$longitude, lat=fao$latitude)
 
 # The single argument to this function, points, is a data.frame in which:
@@ -153,7 +150,88 @@ diet_group <- grouped_fao %>%
 
 
 ### ANAS
-### converting the wide data set into a tall one:
-melted_fao <- grouped_fao %>% select(Area, Element, Item, diet, flag_animal, Y1961 : Y2013) %>%
-    melt(id = c("Area","Element","Item", "diet", "flag_animal"))
-                   
+
+# to see how many missing values there are in each year:
+fao_sel %>% 
+    gather(Year, Production, Y1961:Y2013) %>% 
+    filter(is.na(Production)) %>% 
+    group_by(Year)%>% tally()%>%
+    ggplot(aes(Year,n))+
+    geom_col(fill = "lightgreen")+
+    theme(axis.text.x = element_text(size=6, angle=90),
+          panel.background = element_blank())+
+    geom_text(aes(label = sprintf("%d", n)), hjust = 0.5,
+              vjust = -0.5, size = 3, check_overlap = TRUE)+
+    ylab("Number of missing fields")
+
+# the trend for total feed and food production over the years
+fao_sel %>% 
+    gather(Year, Production, Y1961:Y2013, na.rm = TRUE) %>% 
+    group_by(Element,Year)%>% # to see production development for feed and food per year
+    summarise(Production = sum(Production)/1000)%>% # to get the values in million tonnes
+    ggplot(aes(Year,Production,group = Element))+  
+    geom_col(aes(fill = Element),position = "dodge") + # bars of food and feed next to each other
+    theme_bw()+theme(axis.text.x = element_text(size=6, angle=90),
+                     plot.title = element_text(hjust = 0.5),
+                     panel.grid = element_blank(),legend.title = element_blank())+
+    ylab( "Production (Million Tonnes)")+
+    ggtitle ( "Total Food/Feed production 1961 - 2013")
+
+# to see the largest feed producer, top 6 countries:
+fao_gath <- fao_sel %>% 
+    gather(Year, Production, Y1961:Y2013, na.rm = TRUE) %>% 
+    group_by(Area,Element)
+
+topFeed <- fao_gath%>%
+    filter(Element == "Feed")  %>% # selecting the feed only
+    summarise(totalprod = sum(Production)/1000)%>% # getting the total production for feed
+    ungroup()%>% 
+    top_n(6,totalprod)
+
+# show the top 6 countries for feed production in descending order
+topFeed %>% select(Area,totalprod) %>% arrange(desc(totalprod))
+
+# plotting the top 6 feed producing countries across the years
+topFeedplot <-fao_sel%>% 
+    gather(Year, Production, Y1961:Y2013, na.rm = TRUE) %>% 
+    group_by(Area,Year,Element) %>%
+    filter(Element == "Feed" & Area %in% topFeed$Area) %>%
+    summarise(totalprod = sum(Production)/1000)
+
+topFeedplot %>% 
+    ggplot(aes(Year,totalprod,group = Area, color = Area))+  
+    geom_line(size = 1) +
+    ylab( "Production (Millon Tonnes)")+
+    ggtitle ( "Top  6 Feed Producers 1961 - 2013")+
+    theme_bw()+theme(axis.text.x = element_text(size=6, angle=90),
+                     plot.title = element_text(hjust = 0.5),
+                     panel.grid = element_blank(),
+                     legend.title = element_blank()) 
+
+# to see the largest food producer, top 6 countries: 
+topFood <- fao_gath%>%
+    filter(Element == "Food")  %>% # selecting the food only
+    summarise(totalprod = sum(Production)/1000)%>% # getting the total production for food
+    ungroup()%>% 
+    top_n(6,totalprod)
+
+# show the top 6 countries for food production in descending order
+topFood %>% select(Area,totalprod) %>% arrange(desc(totalprod))
+
+# plotting the top 6 food producing countries across the years
+topFoodplot <-fao_sel%>% 
+    gather(Year, Production, Y1961:Y2013, na.rm = TRUE) %>% 
+    group_by(Area,Year,Element) %>%
+    filter(Element == "Food" & Area %in% topFeed$Area) %>%
+    summarise(totalprod = sum(Production)/1000)
+
+topFoodplot %>% 
+    ggplot(aes(Year,totalprod,group = Area, color = Area))+  
+    geom_line(size = 1) +
+    ylab( "Production (Millon Tonnes)")+
+    ggtitle ( "Top  6 Food Producers 1961 - 2013")+
+    theme_bw()+theme(axis.text.x = element_text(size=6, angle=90),
+                     plot.title = element_text(hjust = 0.5),
+                     panel.grid = element_blank(),
+                     legend.title = element_blank())
+
